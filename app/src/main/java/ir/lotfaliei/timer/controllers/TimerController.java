@@ -1,70 +1,85 @@
-package ir.lotfaliei.timer;
+package ir.lotfaliei.timer.controllers;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemClock;
+import android.content.SharedPreferences;
 import android.util.Log;
 
-import java.util.ArrayList;
+import androidx.preference.PreferenceManager;
+
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import ir.lotfaliei.timer.R;
+
 import static android.content.Context.ALARM_SERVICE;
 
-abstract class TimerController {
-    private final int RESTART_TIME = 60 * 60;
-    private final int TEN_MIN = 10 * 60;
-    private final int FIVE_MIN = 5 * 60;
+public abstract class TimerController {
     private final int SEC_TO_MILIS = 1000;
 
     private SpeechController speechController;
     private Timer timer;
-    private int timerSeconds = RESTART_TIME;
+    private int timerSeconds;
+    private int restartTime;
 
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
 
     private Integer[] alarms =
             {
-                    TEN_MIN,
-                    FIVE_MIN,
+                    45 * 60,
+                    30 * 60,
+                    15 * 60,
+                    5 * 60,
                     0
             };
     private LinkedList<Integer> alarmsQueue;
 
     private static TimerController instance;
 
-    static TimerController getInstance() {
+    public static TimerController getInstance() {
         return instance;
     }
 
-    TimerController(Context context) {
+    public TimerController(Context context) {
         speechController = new SpeechController(context);
 
         alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
+        String str = SettingsController.getPreference(context, "restart_time", R.string.restart_time_value);
+        setRestartTime(str);
+
         restart();
         instance = this;
     }
 
-    boolean getIsPaused() {
+    public void setRestartTime(int min, int sec) {
+        restartTime = min * 60 + sec;
+    }
+
+    public void setRestartTime(String time) {
+        String[] strSplit = time.split(":");
+        int min = Integer.parseInt(strSplit[0]);
+        int sec = Integer.parseInt(strSplit[1]);
+        setRestartTime(min, sec);
+    }
+
+    public boolean getIsPaused() {
         return timer == null;
     }
 
-    int getTimerSeconds() {
+    public int getTimerSeconds() {
         return timerSeconds;
     }
 
-    void restart() {
-        timerSeconds = RESTART_TIME;
+    public void restart() {
+        timerSeconds = restartTime;
         alarmsQueue = new LinkedList<>(Arrays.asList(alarms));
     }
 
@@ -82,7 +97,7 @@ abstract class TimerController {
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + t * SEC_TO_MILIS, pendingIntent);
     }
 
-    void resume() {
+    public void resume() {
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -99,7 +114,7 @@ abstract class TimerController {
         setNextAlarm();
     }
 
-    void pause() {
+    public void pause() {
         if (timer != null) {
             timer.cancel();
             timer = null;
@@ -107,11 +122,11 @@ abstract class TimerController {
         alarmManager.cancel(pendingIntent);
     }
 
-    void shutDown() {
+    public void shutDown() {
         pause();
         speechController.shutDown();
         Log.i(getClass().getName(), "shutDown");
     }
 
-    abstract void tick();
+    protected abstract void tick();
 }

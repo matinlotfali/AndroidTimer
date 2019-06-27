@@ -1,19 +1,17 @@
-package ir.lotfaliei.timer;
+package ir.lotfaliei.timer.controllers;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.Locale;
-import java.util.Timer;
 
 
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-//        Toast.makeText(context, "Alarm! Wake up! Wake up!", Toast.LENGTH_LONG).show();
 //        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
 //        if (alarmUri == null)
 //        {
@@ -26,10 +24,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         int alarmTime = timerController.removeFromAlarmQueue();
         String speechText;
         if (alarmTime == 0)
-            speechText = "Time is up!";
+            speechText = "Time is up.";
         else
-            speechText = String.format(Locale.ENGLISH, "%d minutes left!", alarmTime / 60);
+            speechText = String.format(Locale.ENGLISH, "You have %d minutes left.", alarmTime / 60);
 
+        Toast.makeText(context, speechText, Toast.LENGTH_LONG).show();
         Log.i(getClass().getName(), "onReceive: " + speechText);
 
         timerController.setNextAlarm();

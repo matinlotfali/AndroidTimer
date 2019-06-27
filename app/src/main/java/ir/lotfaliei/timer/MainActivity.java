@@ -1,6 +1,7 @@
 package ir.lotfaliei.timer;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
@@ -15,7 +16,12 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Locale;
+
+import ir.lotfaliei.timer.controllers.TimerController;
+import ir.lotfaliei.timer.views.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
     ProgressBar progressBar;
     TextView textView;
-    Button pauseButton, restartButton;
+    Button pauseButton;
+    MenuItem restartButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
         pauseButton = findViewById(R.id.pauseButton);
-        restartButton = findViewById(R.id.restartButton);
 
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,18 +52,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        restartButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(getClass().getName(), "restart button pressed");
-                timerController.restart();
-                updateProgress();
-            }
-        });
-
         timerController = new TimerController(this) {
             @Override
-            void tick() {
+            protected void tick() {
                 updateProgress();
             }
         };
@@ -91,13 +88,13 @@ public class MainActivity extends AppCompatActivity {
     private void startTimer() {
         timerController.resume();
         pauseButton.setText(R.string.Pause);
-        restartButton.setEnabled(false);
+        invalidateOptionsMenu();
     }
 
     private void stopTimer() {
         timerController.pause();
         pauseButton.setText(R.string.Resume);
-        restartButton.setEnabled(true);
+        invalidateOptionsMenu();
     }
 
     private void updateProgress() {
@@ -109,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 progressBar.setProgress(timerSeconds);
                 textView.setText(time_str);
-                pauseButton.setEnabled(timerSeconds > 0);
-                restartButton.setEnabled(timerController.getIsPaused());
+                if (timerSeconds == 0)
+                    stopTimer();
             }
         });
     }
@@ -119,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        restartButton = (MenuItem) menu.findItem(R.id.action_restart);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        restartButton.setVisible(timerController.getIsPaused());
+        super.onPrepareOptionsMenu(menu);
         return true;
     }
 
@@ -130,9 +135,15 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_restart) {
+            Log.d(getClass().getName(), "restart button pressed");
+            timerController.restart();
+            updateProgress();
+        }
 
         return super.onOptionsItemSelected(item);
     }

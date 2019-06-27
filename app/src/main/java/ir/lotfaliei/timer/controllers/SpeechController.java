@@ -1,4 +1,4 @@
-package ir.lotfaliei.timer;
+package ir.lotfaliei.timer.controllers;
 
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
