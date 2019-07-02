@@ -28,9 +28,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         else
             speechText = String.format(Locale.ENGLISH, "You have %d minutes left.", alarmTime / 60);
 
-        Toast.makeText(context, speechText, Toast.LENGTH_LONG).show();
-        Log.i(getClass().getName(), "onReceive: " + speechText);
-
         timerController.setNextAlarm();
         SpeechController.getInstance().initQueue(speechText);
     }

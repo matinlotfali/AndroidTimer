@@ -31,9 +31,8 @@ public abstract class TimerController {
 
     private Integer[] alarms =
             {
-                    45 * 60,
-                    30 * 60,
-                    15 * 60,
+                    40 * 60,
+                    20 * 60,
                     5 * 60,
                     0
             };
